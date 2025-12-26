@@ -48,3 +48,29 @@ kernel_ridge <- function(X, y, lambda = 0.1, q = 1 / ncol(X)) {
     predict = predict
   )
 }
+
+set.seed(1)
+n <- 50
+p <- 2
+X <- matrix(runif(n * p), nrow = n)
+
+kernel_base <- function(X, q = 1 / ncol(X)) {
+
+  n <- nrow(X)
+  p <- ncol(X)
+
+  normx <- drop((X^2) %*% rep(1, p))
+  A <- X %*% t(X)
+  D <- (-2 * A + normx) + outer(rep(1, n), normx)
+
+  K <- exp(-q * D)
+  K
+}
+
+
+f_true <- function(X) sin(rowSums(X))
+sigma <- 0.1
+y <- f_true(X) + rnorm(n, sd = sigma)
+model <- kernel_ridge(X, y, lambda = 0.05)
+y_hat <- model$predict(X)
+y_hat
