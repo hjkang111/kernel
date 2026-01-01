@@ -7,8 +7,6 @@ output:
     latex_engine: xelatex
 ---
 
-
-
 ```{r}
 kernel_base <- function(X, q = 1 / ncol(X)) {
 
@@ -43,7 +41,6 @@ kernel_cross <- function(X_train, X_new, q = 1 / ncol(X_train)) {
 
   exp(-q * D)
 }
-
 
 ## kernel ridge function
 kernel_ridge <- function(X, y, lambda = 0.1, q = 1 / ncol(X)) {
@@ -86,7 +83,6 @@ c(mean(y), sd(y))
 
 model <- kernel_ridge(X, y, lambda = 0.05)
 
-
 y_hat <- model$predict(X)
 y_hat
 c(mean(y_hat), sd(y_hat))
@@ -122,7 +118,6 @@ y <- f_true(X) + rnorm(n, sd = sigma)
 c(mean(y), sd(y))
 
 model <- kernel_ridge(X, y, lambda = 0.05)
-
 
 y_hat <- model$predict(X)
 y_hat
