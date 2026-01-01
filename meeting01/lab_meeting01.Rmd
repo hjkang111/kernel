@@ -1,7 +1,12 @@
 ---
 title: "Kernel R Code"
-output: pdf_document
+author: "Kang JuHyun"
+date: "2026-01-02"
+output:
+  pdf_document:
+    latex_engine: xelatex
 ---
+
 
 
 ```{r}
