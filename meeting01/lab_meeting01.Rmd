@@ -1,0 +1,139 @@
+---
+title: "Kernel R Code"
+output: pdf_document
+---
+
+
+```{r}
+kernel_base <- function(X, q = 1 / ncol(X)) {
+
+  n <- nrow(X)
+  p <- ncol(X)
+
+  normx <- drop((X^2) %*% rep(1, p))
+  A <- X %*% t(X)
+  D <- (-2 * A + normx) + outer(rep(1, n), normx)
+
+  K <- exp(-q * D)
+  K
+}
+
+# alpha select
+kernel_ridge_fit <- function(K, y, lambda = 0.1) {
+  n <- length(y)
+  alpha <- solve(K + lambda * diag(n), y)
+  alpha
+}
+
+
+# kernel function for prediction
+kernel_cross <- function(X_train, X_new, q = 1 / ncol(X_train)) {
+
+  norm_train <- rowSums(X_train^2)
+  norm_new <- rowSums(X_new^2)
+
+  D <- outer(norm_new, rep(1, length(norm_train))) +
+       outer(rep(1, length(norm_new)), norm_train) -
+       2 * X_new %*% t(X_train)
+
+  exp(-q * D)
+}
+
+
+## kernel ridge function
+kernel_ridge <- function(X, y, lambda = 0.1, q = 1 / ncol(X)) {
+
+  # 1. kernel matrix
+  K <- kernel_base(X, q)
+
+  # 2. fit
+  alpha <- kernel_ridge_fit(K, y, lambda)
+
+  # 3. predict function
+  predict <- function(X_new) {
+    K_new <- kernel_cross(X, X_new, q)
+    as.vector(K_new %*% alpha)
+  }
+
+  list(
+    K = K,
+    alpha = alpha,
+    lambda = lambda,
+    q = q,
+    predict = predict
+  )
+}
+```
+
+## Example 01
+```{r}
+set.seed(1)
+n <- 100
+p <- 5
+X <- matrix(runif(n * p), nrow = n)
+
+f_true <- function(X) {
+  sin(X[,1]) + 0.5 * X[,2]^2 + X[,3]
+}
+sigma <- 0.01
+y <- f_true(X) + rnorm(n, sd = sigma)
+c(mean(y), sd(y))
+
+model <- kernel_ridge(X, y, lambda = 0.05)
+
+
+y_hat <- model$predict(X)
+y_hat
+c(mean(y_hat), sd(y_hat))
+
+# mse
+mean((y-y_hat)^2)
+```
+## Visualization of Ex01
+```{r echo=FALSE}
+plot(y, y_hat,
+     xlab = "True y",
+     ylab = "Predicted y_hat",
+     main = "y vs y_hat (Kernel Ridge)",
+     pch = 19, col = rgb(0, 0, 0, 0.5))
+
+abline(a = 0, b = 1, col = "red", lwd = 2)
+```
+
+
+## Example 02
+```{r}
+set.seed(1)
+n <- 100
+p <- 5
+X <- matrix(runif(n * p), nrow = n)
+
+f_true <- function(X) {
+  X[,1] * X[,2] + sin(X[,3])
+}
+
+sigma <- 0.01
+y <- f_true(X) + rnorm(n, sd = sigma)
+c(mean(y), sd(y))
+
+model <- kernel_ridge(X, y, lambda = 0.05)
+
+
+y_hat <- model$predict(X)
+y_hat
+c(mean(y_hat), sd(y_hat))
+
+# mse
+mean((y-y_hat)^2)
+```
+
+## Visualization of Ex02
+```{r echo=FALSE}
+plot(y, y_hat,
+     xlab = "True y",
+     ylab = "Predicted y_hat",
+     main = "y vs y_hat (Kernel Ridge)",
+     pch = 19, col = rgb(0, 0, 0, 0.5))
+
+abline(a = 0, b = 1, col = "red", lwd = 2)
+```
